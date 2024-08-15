@@ -1,4 +1,5 @@
 
+require('dotenv').config();
 const express = require('express');
 const { MongoClient, ObjectId } = require('mongodb');
 const cors = require('cors');
@@ -10,6 +11,9 @@ const app = express();
 const QRCode = require('qrcode');
 app.use(express.json());
 app.use(cors());
+
+const FRONTEND_PORT = process.env.FRONTEND_PORT || 3001;
+const BACKEND_PORT = process.env.BACKEND_PORT || 3000;
 
 // Serve static files from the 'uploads' directory
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -46,6 +50,7 @@ const initializeDBAndServer = async () => {
         console.error("Error connecting to MongoDB:", error);
         process.exit(1);
     }
+
 };
 
 initializeDBAndServer();
@@ -112,7 +117,8 @@ app.post('/register', upload.single('profilePhoto'), async (req, res) => {
         const userId = result.insertedId;
 
         // Generate QR Code URL
-        const qrCodeUrl = `${req.protocol}://${req.get('host')}/profile/${userId}`;
+        // Generate QR Code URL
+        const qrCodeUrl = `http://localhost:${FRONTEND_PORT}/profile/${userId}`;
         const qrCodeFilePath = path.join(__dirname, 'uploads', `qrCode-${userId}.png`);
         await QRCode.toFile(qrCodeFilePath, qrCodeUrl);
 
@@ -193,6 +199,7 @@ app.get('/profile/:userId', async (req, res) => {
         res.status(500).json({ "Internal server error:": error.message });
     }
 });
+
 
 
 
